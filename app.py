@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 import sqlite3
+import math
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
@@ -214,26 +215,43 @@ def delete_customer(customer_id):
     return redirect(url_for("customers"))
 
 
+def validate_product_data(form):
+    name = form.get("name", "").strip()
+
+    try:
+        price = float(form.get("price", "").replace(",", "."))
+        stock = int(form.get("stock", ""))
+
+        if not name:
+            raise ValueError
+
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError
+
+        if stock < 0:
+            raise ValueError
+
+        return name, price, stock
+
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
+
+
 
 
 @app.route("/produtos", methods=["GET", "POST"])
 def products():
     with get_db() as db:
         if request.method == "POST":
-            name = request.form.get("name", "").strip()
+            product_data = validate_product_data(request.form)
 
-            try:
-                price = float(
-                    request.form.get("price", "0").replace(",", ".")
-                )
-                stock = int(request.form.get("stock", "0"))
-
-                if not name or price < 0 or stock < 0:
-                    raise ValueError
-
-            except ValueError:
-                flash("Preencha os dados do produto corretamente.", "error")
+            if product_data is None:
+                flash("Preencha os dados do produto corretamente. O preço deve ser maior que zero e o estoque não pode ser negativo.", "error")
             else:
+                name, price, stock = product_data
+
                 db.execute(
                     "INSERT INTO products(name, price, stock) VALUES (?, ?, ?)",
                     (name, price, stock)
@@ -258,22 +276,17 @@ def products():
     )
 
 
+
+
 @app.post("/produtos/<int:product_id>/editar")
 def edit_product(product_id):
-    name = request.form.get("name", "").strip()
+    product_data = validate_product_data(request.form)
 
-    try:
-        price = float(
-            request.form.get("price", "0").replace(",", ".")
-        )
-        stock = int(request.form.get("stock", "0"))
-
-        if not name or price < 0 or stock < 0:
-            raise ValueError
-
-    except ValueError:
-        flash("Preencha os dados do produto corretamente.", "error")
+    if product_data is None:
+        flash("Preencha os dados do produto corretamente. O preço deve ser maior que zero e o estoque não pode ser negativo.", "error")
         return redirect(url_for("products"))
+
+    name, price, stock = product_data
 
     with get_db() as db:
         product = db.execute(
