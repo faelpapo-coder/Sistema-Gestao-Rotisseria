@@ -78,21 +78,100 @@ def dashboard():
     return render_template("dashboard.html", totals=totals, recent_orders=recent_orders)
 
 
+
+
 @app.route("/clientes", methods=["GET", "POST"])
 def customers():
     with get_db() as db:
         if request.method == "POST":
             name = request.form.get("name", "").strip()
             phone = request.form.get("phone", "").strip()
+
             if not name:
                 flash("Informe o nome do cliente.", "error")
             else:
-                db.execute("INSERT INTO customers(name, phone) VALUES (?, ?)", (name, phone))
+                db.execute(
+                    "INSERT INTO customers(name, phone) VALUES (?, ?)",
+                    (name, phone)
+                )
                 db.commit()
                 flash("Cliente cadastrado com sucesso.", "success")
                 return redirect(url_for("customers"))
-        rows = db.execute("SELECT * FROM customers ORDER BY name").fetchall()
-    return render_template("customers.html", customers=rows)
+
+        search = request.args.get("q", "").strip()
+
+        rows = db.execute("""
+            SELECT * FROM customers
+            WHERE name LIKE ? OR phone LIKE ?
+            ORDER BY name
+        """, (f"%{search}%", f"%{search}%")).fetchall()
+
+    return render_template(
+        "customers.html",
+        customers=rows,
+        search=search
+    )
+
+
+@app.post("/clientes/<int:customer_id>/editar")
+def edit_customer(customer_id):
+    name = request.form.get("name", "").strip()
+    phone = request.form.get("phone", "").strip()
+
+    if not name:
+        flash("Informe o nome do cliente.", "error")
+        return redirect(url_for("customers"))
+
+    with get_db() as db:
+        customer = db.execute(
+            "SELECT id FROM customers WHERE id = ?",
+            (customer_id,)
+        ).fetchone()
+
+        if not customer:
+            flash("Cliente não encontrado.", "error")
+        else:
+            db.execute(
+                "UPDATE customers SET name=?, phone=? WHERE id=?",
+                (name, phone, customer_id)
+            )
+            db.commit()
+            flash("Cliente atualizado com sucesso.", "success")
+
+    return redirect(url_for("customers"))
+
+
+@app.post("/clientes/<int:customer_id>/excluir")
+def delete_customer(customer_id):
+    with get_db() as db:
+        customer = db.execute(
+            "SELECT id FROM customers WHERE id=?",
+            (customer_id,)
+        ).fetchone()
+
+        if not customer:
+            flash("Cliente não encontrado.", "error")
+        else:
+            orders = db.execute(
+                "SELECT id FROM orders WHERE customer_id=?",
+                (customer_id,)
+            ).fetchone()
+
+            if orders:
+                flash(
+                    "Não é possível excluir: este cliente possui pedidos registrados.",
+                    "error"
+                )
+            else:
+                db.execute(
+                    "DELETE FROM customers WHERE id=?",
+                    (customer_id,)
+                )
+                db.commit()
+                flash("Cliente excluído com sucesso.", "success")
+
+    return redirect(url_for("customers"))
+
 
 
 @app.route("/produtos", methods=["GET", "POST"])

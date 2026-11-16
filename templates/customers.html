@@ -1,20 +1,139 @@
+
 {% extends "base.html" %}
+
 {% block title %}Clientes | Rotisseria Fácil{% endblock %}
+
 {% block content %}
-<h1>Clientes</h1>
+
+<h1>Gerenciamento de Clientes</h1>
+
 <section class="panel">
-  <h2>Cadastrar cliente</h2>
-  <form method="post" class="form-grid">
-    <label>Nome do cliente<input name="name" required maxlength="100" placeholder="Ex.: João Silva"></label>
-    <label>Telefone<input name="phone" maxlength="30" placeholder="Ex.: (11) 99999-9999"></label>
-    <button class="button" type="submit">Salvar cliente</button>
-  </form>
+    <h2>Cadastrar cliente</h2>
+
+    <form method="post" class="form-grid">
+        <label>
+            Nome do cliente
+            <input
+                name="name"
+                required
+                maxlength="100"
+                placeholder="Ex.: João Silva"
+            >
+        </label>
+
+        <label>
+            Telefone
+            <input
+                name="phone"
+                maxlength="30"
+                placeholder="Ex.: (11) 99999-9999"
+            >
+        </label>
+
+        <button class="button" type="submit">
+            Salvar cliente
+        </button>
+    </form>
 </section>
+
 <section class="panel">
-  <h2>Clientes cadastrados</h2>
-  {% if customers %}<div class="table-wrap"><table>
-    <thead><tr><th>Nome</th><th>Telefone</th></tr></thead>
-    <tbody>{% for customer in customers %}<tr><td>{{ customer.name }}</td><td>{{ customer.phone or "Não informado" }}</td></tr>{% endfor %}</tbody>
-  </table></div>{% else %}<p class="empty">Nenhum cliente cadastrado.</p>{% endif %}
+    <h2>Pesquisar clientes</h2>
+
+    <form method="get" class="form-grid">
+        <label>
+            Nome ou telefone
+            <input
+                name="q"
+                value="{{ search }}"
+                placeholder="Digite para pesquisar"
+            >
+        </label>
+
+        <button class="button" type="submit">
+            Pesquisar
+        </button>
+
+        <a class="button" href="{{ url_for('customers') }}">
+            Limpar pesquisa
+        </a>
+    </form>
 </section>
+
+<section class="panel">
+    <h2>Clientes cadastrados</h2>
+
+    {% if customers %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Editar dados</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for customer in customers %}
+
+                <tr>
+                    <td>{{ customer.name }}</td>
+
+                    <td>
+                        {{ customer.phone or "Não informado" }}
+                    </td>
+
+                    <td>
+                        <form
+                            method="post"
+                            action="{{ url_for('edit_customer', customer_id=customer.id) }}"
+                        >
+                            <input
+                                name="name"
+                                value="{{ customer.name }}"
+                                required
+                                maxlength="100"
+                            >
+
+                            <input
+                                name="phone"
+                                value="{{ customer.phone or '' }}"
+                                maxlength="30"
+                            >
+
+                            <button class="button" type="submit">
+                                Salvar edição
+                            </button>
+                        </form>
+                    </td>
+
+                    <td>
+                        <form
+                            method="post"
+                            action="{{ url_for('delete_customer', customer_id=customer.id) }}"
+                            onsubmit="return confirm('Deseja realmente excluir este cliente?')"
+                        >
+                            <button class="button" type="submit">
+                                Excluir
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+
+    <p class="empty">
+        Nenhum cliente encontrado.
+    </p>
+
+    {% endif %}
+</section>
+
 {% endblock %}
