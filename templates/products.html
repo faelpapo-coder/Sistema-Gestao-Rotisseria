@@ -1,21 +1,168 @@
+
 {% extends "base.html" %}
+
 {% block title %}Produtos | Rotisseria Fácil{% endblock %}
+
 {% block content %}
-<h1>Produtos e estoque</h1>
+
+<h1>Gerenciamento de Produtos e Estoque</h1>
+
 <section class="panel">
-  <h2>Cadastrar produto</h2>
-  <form method="post" class="form-grid">
-    <label>Nome do produto<input name="name" required maxlength="100" placeholder="Ex.: Marmita de frango"></label>
-    <label>Preço (R$)<input name="price" type="number" min="0" step="0.01" required placeholder="20.00"></label>
-    <label>Quantidade em estoque<input name="stock" type="number" min="0" step="1" required value="0"></label>
-    <button class="button" type="submit">Salvar produto</button>
-  </form>
+    <h2>Cadastrar produto</h2>
+
+    <form method="post" class="form-grid">
+        <label>
+            Nome do produto
+            <input
+                name="name"
+                required
+                maxlength="100"
+                placeholder="Ex.: Marmita de frango"
+            >
+        </label>
+
+        <label>
+            Preço (R$)
+            <input
+                name="price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                placeholder="20.00"
+            >
+        </label>
+
+        <label>
+            Quantidade em estoque
+            <input
+                name="stock"
+                type="number"
+                min="0"
+                step="1"
+                required
+                value="0"
+            >
+        </label>
+
+        <button class="button" type="submit">
+            Salvar produto
+        </button>
+    </form>
 </section>
+
 <section class="panel">
-  <h2>Produtos cadastrados</h2>
-  {% if products %}<div class="table-wrap"><table>
-    <thead><tr><th>Produto</th><th>Preço</th><th>Estoque</th></tr></thead>
-    <tbody>{% for product in products %}<tr><td>{{ product.name }}</td><td>{{ product.price|currency }}</td><td>{{ product.stock }}</td></tr>{% endfor %}</tbody>
-  </table></div>{% else %}<p class="empty">Nenhum produto cadastrado.</p>{% endif %}
+    <h2>Pesquisar produtos</h2>
+
+    <form method="get" class="form-grid">
+        <label>
+            Nome do produto
+            <input
+                name="q"
+                value="{{ search }}"
+                placeholder="Digite o nome do produto"
+            >
+        </label>
+
+        <button class="button" type="submit">
+            Pesquisar
+        </button>
+
+        <a class="button" href="{{ url_for('products') }}">
+            Limpar pesquisa
+        </a>
+    </form>
 </section>
+
+<section class="panel">
+    <h2>Produtos cadastrados</h2>
+
+    {% if products %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Editar</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for product in products %}
+
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.price|currency }}</td>
+                    <td>{{ product.stock }}</td>
+
+                    <td>
+                        <form
+                            method="post"
+                            action="{{ url_for('edit_product', product_id=product.id) }}"
+                        >
+                            <input
+                                name="name"
+                                value="{{ product.name }}"
+                                required
+                                maxlength="100"
+                            >
+
+                            <input
+                                name="price"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value="{{ product.price }}"
+                                required
+                            >
+
+                            <input
+                                name="stock"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value="{{ product.stock }}"
+                                required
+                            >
+
+                            <button class="button" type="submit">
+                                Salvar edição
+                            </button>
+                        </form>
+                    </td>
+
+                    <td>
+                        <form
+                            method="post"
+                            action="{{ url_for('toggle_product', product_id=product.id) }}"
+                        >
+                            <button class="button" type="submit">
+                                {% if product.active %}
+                                    Desativar
+                                {% else %}
+                                    Ativar
+                                {% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+
+    <p class="empty">
+        Nenhum produto encontrado.
+    </p>
+
+    {% endif %}
+</section>
+
 {% endblock %}
