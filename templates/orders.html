@@ -1,46 +1,173 @@
+
 {% extends "base.html" %}
+
 {% block title %}Pedidos | Rotisseria Fácil{% endblock %}
+
 {% block content %}
+
 <h1>Gerenciamento de pedidos</h1>
+
 <section class="panel">
-  <h2>Novo pedido</h2>
-  {% if not customers or not products %}
-    <p class="notice">Para cadastrar um pedido, primeiro registre pelo menos um cliente e um produto com estoque disponível.</p>
-  {% endif %}
-  <form method="post" class="form-grid">
-    <label>Cliente
-      <select name="customer_id" required>
-        <option value="">Selecione um cliente</option>
-        {% for customer in customers %}<option value="{{ customer.id }}">{{ customer.name }}</option>{% endfor %}
-      </select>
-    </label>
-    <label>Produto
-      <select name="product_id" required>
-        <option value="">Selecione um produto</option>
-        {% for product in products %}<option value="{{ product.id }}">{{ product.name }} — {{ product.price|currency }} ({{ product.stock }} disponíveis)</option>{% endfor %}
-      </select>
-    </label>
-    <label>Quantidade<input name="quantity" type="number" min="1" step="1" required value="1"></label>
-    <button class="button" type="submit" {% if not customers or not products %}disabled{% endif %}>Cadastrar pedido</button>
-  </form>
+    <h2>Novo pedido</h2>
+
+    {% if not customers or not products %}
+        <p class="notice">
+            Para cadastrar um pedido, primeiro registre pelo menos um cliente
+            e um produto com estoque disponível.
+        </p>
+    {% endif %}
+
+    <form method="post" class="form-grid">
+
+        <label>
+            Cliente
+            <select name="customer_id" required>
+                <option value="">Selecione um cliente</option>
+
+                {% for customer in customers %}
+                    <option value="{{ customer.id }}">
+                        {{ customer.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Produto
+            <select name="product_id" required>
+                <option value="">Selecione um produto</option>
+
+                {% for product in products %}
+                    <option value="{{ product.id }}">
+                        {{ product.name }} — {{ product.price|currency }}
+                        ({{ product.stock }} disponíveis)
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Quantidade
+            <input
+                name="quantity"
+                type="number"
+                min="1"
+                step="1"
+                required
+                value="1"
+            >
+        </label>
+
+        <button
+            class="button"
+            type="submit"
+            {% if not customers or not products %}disabled{% endif %}
+        >
+            Cadastrar pedido
+        </button>
+
+    </form>
 </section>
+
 <section class="panel">
-  <h2>Pedidos registrados</h2>
-  {% if orders %}<div class="table-wrap"><table>
-    <thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Data</th><th>Total</th><th>Status</th><th>Atualizar</th></tr></thead>
-    <tbody>{% for order in orders %}
-    <tr>
-      <td>#{{ order.id }}</td><td>{{ order.customer_name }}</td><td>{{ order.items or "—" }}</td>
-      <td>{{ order.created_at }}</td><td>{{ order.total|currency }}</td>
-      <td><span class="status">{{ order.status }}</span></td>
-      <td><form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" class="inline-form">
-        <label class="sr-only" for="status-{{ order.id }}">Status do pedido {{ order.id }}</label>
-        <select id="status-{{ order.id }}" name="status">
-          {% for status in statuses %}<option value="{{ status }}" {% if status == order.status %}selected{% endif %}>{{ status }}</option>{% endfor %}
-        </select>
-        <button class="button small" type="submit">Salvar</button>
-      </form></td>
-    </tr>{% endfor %}</tbody>
-  </table></div>{% else %}<p class="empty">Nenhum pedido cadastrado.</p>{% endif %}
+    <h2>Pedidos registrados</h2>
+
+    {% if orders %}
+
+        <div class="table-wrap">
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Cliente</th>
+                        <th>Produtos</th>
+                        <th>Data</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Atualizar status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for order in orders %}
+
+                        <tr>
+                            <td>#{{ order.id }}</td>
+
+                            <td>{{ order.customer_name }}</td>
+
+                            <td>{{ order.items or "—" }}</td>
+
+                            <td>{{ order.created_at }}</td>
+
+                            <td>{{ order.total|currency }}</td>
+
+                            <td>
+                                <span class="status">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <form
+                                    method="post"
+                                    action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    class="inline-form"
+                                >
+
+                                    <label
+                                        class="sr-only"
+                                        for="status-{{ order.id }}"
+                                    >
+                                        Status do pedido {{ order.id }}
+                                    </label>
+
+                                    <select
+                                        id="status-{{ order.id }}"
+                                        name="status"
+                                    >
+
+                                        {% for status in statuses %}
+
+                                            <option
+                                                value="{{ status }}"
+                                                {% if status == order.status %}selected{% endif %}
+                                            >
+                                                {{ status }}
+                                            </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                    <button
+                                        class="button small"
+                                        type="submit"
+                                    >
+                                        Salvar
+                                    </button>
+
+                                </form>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    {% else %}
+
+        <p class="empty">
+            Nenhum pedido cadastrado.
+        </p>
+
+    {% endif %}
+
 </section>
+
 {% endblock %}

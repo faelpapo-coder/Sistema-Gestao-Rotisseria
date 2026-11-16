@@ -381,22 +381,74 @@ def orders():
 
 
 
+
 @app.post("/pedidos/<int:order_id>/status")
 def update_order_status(order_id):
-    allowed = {"Aguardando preparo", "Em preparo", "Pronto", "Concluído", "Cancelado"}
+    allowed = {
+        "Aguardando preparo",
+        "Em preparo",
+        "Pronto",
+        "Concluído",
+        "Cancelado"
+    }
+
     status = request.form.get("status")
+
     if status not in allowed:
         flash("Status inválido.", "error")
-    else:
-        with get_db() as db:
-            exists = db.execute("SELECT id FROM orders WHERE id=?", (order_id,)).fetchone()
-            if exists:
-                db.execute("UPDATE orders SET status=? WHERE id=?", (status, order_id))
-                db.commit()
-                flash(f"Status do pedido #{order_id} atualizado.", "success")
-            else:
-                flash("Pedido não encontrado.", "error")
+        return redirect(url_for("orders"))
+
+    with get_db() as db:
+        order = db.execute(
+            "SELECT id, status FROM orders WHERE id=?",
+            (order_id,)
+        ).fetchone()
+
+        if not order:
+            flash("Pedido não encontrado.", "error")
+
+        elif order["status"] == "Cancelado":
+            flash("Este pedido já foi cancelado e não pode ser alterado.", "error")
+
+        elif status == "Cancelado":
+            items = db.execute(
+                "SELECT product_id, quantity FROM order_items WHERE order_id=?",
+                (order_id,)
+            ).fetchall()
+
+            for item in items:
+                db.execute(
+                    "UPDATE products SET stock = stock + ? WHERE id=?",
+                    (item["quantity"], item["product_id"])
+                )
+
+            db.execute(
+                "UPDATE orders SET status=? WHERE id=?",
+                (status, order_id)
+            )
+
+            db.commit()
+
+            flash(
+                f"Pedido #{order_id} cancelado. Estoque restaurado com sucesso.",
+                "success"
+            )
+
+        else:
+            db.execute(
+                "UPDATE orders SET status=? WHERE id=?",
+                (status, order_id)
+            )
+
+            db.commit()
+
+            flash(
+                f"Status do pedido #{order_id} atualizado.",
+                "success"
+            )
+
     return redirect(url_for("orders"))
+
 
 
 @app.route("/historico")
