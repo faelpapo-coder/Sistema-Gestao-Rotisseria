@@ -61,21 +61,62 @@ def currency(value):
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+
 @app.route("/")
 def dashboard():
     with get_db() as db:
         totals = {
-            "orders": db.execute("SELECT COUNT(*) FROM orders").fetchone()[0],
-            "customers": db.execute("SELECT COUNT(*) FROM customers").fetchone()[0],
-            "products": db.execute("SELECT COUNT(*) FROM products WHERE active=1").fetchone()[0],
-            "sales": db.execute("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status='Concluído'").fetchone()[0],
+            "orders": db.execute(
+                "SELECT COUNT(*) FROM orders"
+            ).fetchone()[0],
+
+            "customers": db.execute(
+                "SELECT COUNT(*) FROM customers"
+            ).fetchone()[0],
+
+            "products": db.execute(
+                "SELECT COUNT(*) FROM products WHERE active=1"
+            ).fetchone()[0],
+
+            "sales": db.execute(
+                "SELECT COALESCE(SUM(total), 0) FROM orders WHERE status != 'Cancelado'"
+            ).fetchone()[0],
+
+            "completed": db.execute(
+                "SELECT COUNT(*) FROM orders WHERE status='Concluído'"
+            ).fetchone()[0],
+
+            "canceled": db.execute(
+                "SELECT COUNT(*) FROM orders WHERE status='Cancelado'"
+            ).fetchone()[0],
         }
+
         recent_orders = db.execute("""
             SELECT o.*, c.name AS customer_name
-            FROM orders o JOIN customers c ON c.id=o.customer_id
-            ORDER BY o.id DESC LIMIT 5
+            FROM orders o
+            JOIN customers c ON c.id = o.customer_id
+            ORDER BY o.id DESC
+            LIMIT 10
         """).fetchall()
-    return render_template("dashboard.html", totals=totals, recent_orders=recent_orders)
+
+        top_products = db.execute("""
+            SELECT p.name, SUM(oi.quantity) AS quantity_sold
+            FROM order_items oi
+            JOIN orders o ON o.id = oi.order_id
+            JOIN products p ON p.id = oi.product_id
+            WHERE o.status != 'Cancelado'
+            GROUP BY p.id, p.name
+            ORDER BY quantity_sold DESC
+            LIMIT 5
+        """).fetchall()
+
+    return render_template(
+        "dashboard.html",
+        totals=totals,
+        recent_orders=recent_orders,
+        top_products=top_products
+    )
+
 
 
 
