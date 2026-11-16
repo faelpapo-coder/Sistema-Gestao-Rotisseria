@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Rotisseria Fácil{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}">🍽️ Rotisseria Fácil</a>
+  <nav aria-label="Navegação principal">
+    <a href="{{ url_for('dashboard') }}">Início</a>
+    <a href="{{ url_for('customers') }}">Clientes</a>
+    <a href="{{ url_for('products') }}">Produtos</a>
+    <a href="{{ url_for('orders') }}">Pedidos</a>
+    <a href="{{ url_for('history') }}">Histórico</a>
+  </nav>
+</header>
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <section aria-label="Mensagens do sistema">
+      {% for category, message in messages %}
+        <p class="flash {{ category }}" role="status">{{ message }}</p>
+      {% endfor %}
+      </section>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Rotisseria Fácil · MVP acadêmico</footer>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Clientes | Rotisseria Fácil{% endblock %}
+{% block content %}
+<h1>Clientes</h1>
+<section class="panel">
+  <h2>Cadastrar cliente</h2>
+  <form method="post" class="form-grid">
+    <label>Nome do cliente<input name="name" required maxlength="100" placeholder="Ex.: João Silva"></label>
+    <label>Telefone<input name="phone" maxlength="30" placeholder="Ex.: (11) 99999-9999"></label>
+    <button class="button" type="submit">Salvar cliente</button>
+  </form>
+</section>
+<section class="panel">
+  <h2>Clientes cadastrados</h2>
+  {% if customers %}<div class="table-wrap"><table>
+    <thead><tr><th>Nome</th><th>Telefone</th></tr></thead>
+    <tbody>{% for customer in customers %}<tr><td>{{ customer.name }}</td><td>{{ customer.phone or "Não informado" }}</td></tr>{% endfor %}</tbody>
+  </table></div>{% else %}<p class="empty">Nenhum cliente cadastrado.</p>{% endif %}
+</section>
+{% endblock %}

@@ -1,7 +1,7 @@
 from pathlib import Path
 import textwrap, zipfile, os
 
-base = Path("/mnt/data/Sistema-Gestao-Rotisseria")
+base = Path(__file__).resolve().parent
 (base / "templates").mkdir(parents=True, exist_ok=True)
 (base / "static").mkdir(parents=True, exist_ok=True)
 (base / "tests").mkdir(parents=True, exist_ok=True)
@@ -591,8 +591,8 @@ for name, content in files.items():
     path = base / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(textwrap.dedent(content).lstrip(), encoding="utf-8")
-
-zip_path = Path("/mnt/data/Sistema-Gestao-Rotisseria-MVP.zip")
+    
+zip_path = base.parent / "Sistema-Gestao-Rotisseria-MVP.zip"
 with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
     for path in base.rglob("*"):
         if path.is_file():

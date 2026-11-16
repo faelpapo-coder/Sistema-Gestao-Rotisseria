@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Histórico | Rotisseria Fácil{% endblock %}
+{% block content %}
+<h1>Histórico de pedidos</h1>
+<section class="panel">
+  {% if orders %}<div class="table-wrap"><table>
+    <thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
+    <tbody>{% for order in orders %}<tr>
+      <td>#{{ order.id }}</td><td>{{ order.customer_name }}</td><td>{{ order.items or "—" }}</td>
+      <td>{{ order.created_at }}</td><td>{{ order.total|currency }}</td><td><span class="status">{{ order.status }}</span></td>
+    </tr>{% endfor %}</tbody>
+  </table></div>{% else %}<p class="empty">O histórico aparecerá quando houver pedidos cadastrados.</p>{% endif %}
+</section>
+{% endblock %}
